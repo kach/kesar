@@ -55,7 +55,6 @@ def page(uid, *contents, **kwargs):
         form_(action='', method='POST')(
             *contents,
             input_(type_='hidden', name='uid', value=uid),
-            input_(id_='submit', type_='submit', value='Next', disabled="true" if 'disable_submit' in kwargs else None),
             p_()(em_()('Note: do not press the "back" button during this study.'))
         ),
         script_()('''
@@ -76,6 +75,20 @@ def page(uid, *contents, **kwargs):
             });
         ''')
     )
+
+static_cache = {}
+def static_(path):
+    mtime = os.path.getmtime(path)
+    if path not in static_cache or static_cache[path]['mtime'] != mtime:
+        with open(path) as f:
+            static_cache[path] = {
+                'mtime': mtime,
+                'value': f.read()
+            }
+    return static_cache[path]['value']
+
+def submit_(**kwargs):
+    return input_(id_='submit_button', type_='submit', value='Next', **kwargs)
 
 def text_input_(name='response', text='', required=True):
     return span_()(
