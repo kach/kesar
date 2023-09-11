@@ -20,13 +20,15 @@ Kesar converts such experiments into full-featured web applications ready to sha
 ```python
 from kesar import *
 @kesar
-def experiment():
+def experiment(uid):
   data = {}
   animals = ['cat', 'dog', 'beaver']
 
   for animal in animals:
-    response = yield text_input_('rating',
-      f'Do you have a pet {animal}? (y/n)')
+    response = yield div_()(
+      text_input_('rating', f'Do you have a pet {animal}? (y/n)'),
+      submit_()
+    )
     data[animal] = response['rating']
   return data  # to be logged
 ```
@@ -40,11 +42,12 @@ Of course, this is just a small example. For a real experiment you would include
 
 Here are some things you don't have to think about with Kesar:
 
-+ JavaScript, plugins, templating: Kesar lets you design your entire study in Python. The study gets converted into HTML for you.
++ JavaScript, plugins, templating: Kesar lets you design your entire study in Python. The study gets converted into HTML for you. Of course, you can also include external HTML files (e.g. consent screens) and update them live without rebooting the server.
 + CSS and styling: Kesar comes with a reasonable built-in theme. Your experiment looks polished, works on both desktop and smartphones, and is accessible by default (including supporting keyboard shortcuts).
 + Asynchronous code, "timelines," "callbacks": In Kesar, you loop over trials with a standard `for` loop in Python, and the loop advances in "real time" as participants advance through the study. `if` and `while` also work as you expect. You don't have to specify a timeline or state machine up-front!
 + Server admin and networking: Kesar automatically sets itself up as a web server the way you want it for experiments. The server automatically restarts every time you edit/save your experiment.
 + Logging, databases, SQL, XMLHttpRequests: Kesar has built-in facility to log responses to a file in JSON format. Logging is thread-safe by default so you never have data corruption issues.
++ WebSockets for "multiplayer" experiments: Kesar lets you pair up participants (e.g. for a communication game) with just two lines of code. You can tunnel information between participants, and even detect when a participant's partner disconnects.
 
 The entire library is a single dependency-free Python file that builds on standard, simple, lasting technologies. If it comes to it, you should easily be able to edit Kesar itself to do what you want.
 
@@ -66,11 +69,11 @@ To create an experiment, open a new Python file called `my_experiment.py` and ad
 ```python
 from kesar import *
 @kesar
-def my_experiment():
+def my_experiment(uid):
 	pass
 ```
 
-The code inside `my_experiment()` will describe the flow of your experiment.
+The code inside `my_experiment()` will describe the flow of your experiment, and `uid` will be a unique identifier for the current participant.
 
 Experiments are broken up into "pages." To create a new page of the experiment, use the `yield` statement followed by a description of your page. Just like `input()`, the `yield` statement pauses the script to wait for user input. But instead of asking on the command prompt, Kesar sends the question to the participant's web browser, waits for them to submit their response, and then resumes your script by returning the participant's response.
 

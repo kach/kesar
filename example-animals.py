@@ -1,7 +1,7 @@
 from kesar import *
 
 @kesar
-def experiment():
+def experiment(uid):
   data = {}
   animals = ['cat', 'dog', 'beaver']
 

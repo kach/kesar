@@ -3,6 +3,9 @@ KESAR: Kartik's Experiment Server for { Accelerating Research
                                       | Aggregating Responses
                                       | Asking Riddles
                                       | Analyzing Rationality
+                                      | Accumulating Reward
+                                      | Ascertaining Reality
+                                      | Aiding Researchers
                                       }
 '''
 
@@ -10,7 +13,11 @@ import os, sys, time, threading
 import http.server, socketserver, uuid
 from urllib.parse import urlparse, parse_qs
 from functools import partial
+import threading
 
+# https://dohliam.github.io/dropin-minimal-css/
+CSS_FRAMEWORK_HREF = "https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+# CSS_FRAMEWORK_HREF = "https://cdn.jsdelivr.net/npm/holiday.css@0.11.2"
 
 class tag:
     def __init__(self, __name, **prop):
@@ -42,7 +49,7 @@ def page(uid, *contents, **kwargs):
         return '<!DOCTYPE html>' + html_()(
             meta_(charset="utf-8"),
             meta_(name="viewport", content="width=device-width, initial-scale=1.0"),
-            link_(rel='stylesheet', type_='text/css', href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"),
+            link_(rel='stylesheet', type_='text/css', href=CSS_FRAMEWORK_HREF),
             form_(action='', method='POST')(
                 *contents
             )
@@ -51,7 +58,7 @@ def page(uid, *contents, **kwargs):
     return '<!DOCTYPE html>' + html_()(
         meta_(charset="utf-8"),
         meta_(name="viewport", content="width=device-width, initial-scale=1.0"),
-        link_(rel='stylesheet', type_='text/css', href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"),
+        link_(rel='stylesheet', type_='text/css', href=CSS_FRAMEWORK_HREF),
         form_(action='', method='POST')(
             *contents,
             input_(type_='hidden', name='uid', value=uid),
@@ -102,9 +109,58 @@ def check_input_(name, text, required=True):
         input_(type_='checkbox', id_=name, name=name, required=required)
     )
 
+class pair_manager:
+    def __init__(self, timeout=60):
+        self.timeout = timeout
+        self.lock = threading.Lock()
+        self.unpaired = []
+        self.partners = {}
+        self.mailboxs = {}
+        self.lastping = {}
 
-def kesar(script, port=8080, watch=True, logfile='log.db'):
+    def get_partner(self, name):
+        with self.lock:
+            self.unpaired.append(name)
+            self.lastping[name] = time.time()
+            while len(self.unpaired) >= 2:
+                a = self.unpaired.pop(0)
+                b = self.unpaired.pop(0)
+                self.partners[a] = b
+                self.partners[b] = a
+
+            if name in self.partners:
+                return self.partners[name]
+            return False
+
+    def send(self, name, message):
+        with self.lock:
+            self.lastping[name] = time.time()
+            partner = self.partners[name]
+            self.mailboxs[partner] = message
+
+    def recv(self, name):
+        with self.lock:
+            self.lastping[name] = time.time()
+            if self.lastping[self.partners[name]] < time.time() - self.timeout:
+                raise Exception(f'Partner of {name} has disconnected...')
+
+            if name not in self.mailboxs:
+                self.mailboxs[name] = False
+            message = self.mailboxs[name]
+            self.mailboxs[name] = False
+            return message
+
+def pause_(t=10):
+    return script_()(f'''
+        window.setTimeout(function() {{
+            SUBMITTING = true;
+            document.getElementsByTagName('form')[0].submit();
+        }}, {t * 1000});
+    ''')
+
+def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
     print(f'** Hello! I am Kesar and the time is {time.ctime()}.')
+    print('   You can learn more about me here: https://github.com/kach/kesar')
     sessions = {}
 
     class Experiment(http.server.SimpleHTTPRequestHandler):
@@ -117,7 +173,7 @@ def kesar(script, port=8080, watch=True, logfile='log.db'):
             self.send_header('Content-type', 'text/html')
             self.end_headers()
 
-            sessions[uid] = script()
+            sessions[uid] = script(uid)
             next_form = page(uid, next(sessions[uid]))
             self.wfile.write(next_form.encode('utf-8'))
 
@@ -126,10 +182,14 @@ def kesar(script, port=8080, watch=True, logfile='log.db'):
             field_data = self.rfile.read(length)
             fields = parse_qs(urlparse(field_data).path.decode('utf-8'))
             uid = fields['uid'][0]
+            if uid not in sessions:
+                print(f'-- Rebooting zombie session {uid}')
+                return self.do_GET()
 
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
+
             try:
                 next_form = page(uid, sessions[uid].send(fields))
             except StopIteration as e:  # script completed
@@ -168,7 +228,7 @@ def kesar(script, port=8080, watch=True, logfile='log.db'):
 
     import socket
     ip = socket.gethostbyname(socket.gethostname())
-    print(f'** I am launching the server at http://{ip}:{port} - press CTRL-C to stop the server.')
+    print(f'** I am launching the server at http://{ip}:{port} - press CTRL-C to stop me anytime.')
     print(f'** I am logging responses to file {logfile}')
     with http.server.ThreadingHTTPServer(("", port), Experiment) as httpd:
         try:
