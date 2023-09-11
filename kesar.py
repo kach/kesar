@@ -13,11 +13,10 @@ kesar: Kartik's Experiment Server for { Accelerating Research
                                       }
 '''
 
-import os, sys, time, threading
+import os, sys, time, threading, random, json
 import http.server, socket, socketserver, uuid
 from urllib.parse import urlparse, parse_qs
-from functools import partial
-import json
+import functools, itertools
 
 # https://dohliam.github.io/dropin-minimal-css/
 CSS_FRAMEWORK_HREF = "https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
@@ -45,7 +44,7 @@ class tag:
 # Install 'tag' shortcuts globally, e.g. h1_() for <h1>
 elements = ['<a>', '<abbr>', '<acronym>', '<address>', '<applet>', '<area>', '<article>', '<aside>', '<audio>', '<b>', '<base>', '<basefont>', '<bdi>', '<bdo>', '<bgsound>', '<big>', '<blink>', '<blockquote>', '<body>', '<br>', '<button>', '<canvas>', '<caption>', '<center>', '<cite>', '<code>', '<col>', '<colgroup>', '<content>', '<data>', '<datalist>', '<dd>', '<del>', '<details>', '<dfn>', '<dialog>', '<dir>', '<div>', '<dl>', '<dt>', '<em>', '<embed>', '<fieldset>', '<figcaption>', '<figure>', '<font>', '<footer>', '<form>', '<frame>', '<frameset>', '<h1>', '<h2>', '<h3>', '<h4>', '<h5>', '<h6>', '<head>', '<header>', '<hgroup>', '<hr>', '<html>', '<i>', '<iframe>', '<img>', '<input>', '<ins>', '<kbd>', '<keygen>', '<label>', '<legend>', '<li>', '<link>', '<main>', '<map>', '<mark>', '<marquee>', '<menu>', '<menuitem>', '<meta>', '<meter>', '<nav>', '<nobr>', '<noframes>', '<noscript>', '<object>', '<ol>', '<optgroup>', '<option>', '<output>', '<p>', '<param>', '<picture>', '<plaintext>', '<pre>', '<progress>', '<q>', '<rp>', '<rt>', '<rtc>', '<ruby>', '<s>', '<samp>', '<script>', '<section>', '<select>', '<shadow>', '<slot>', '<small>', '<source>', '<spacer>', '<span>', '<strike>', '<strong>', '<style>', '<sub>', '<summary>', '<sup>', '<table>', '<tbody>', '<td>', '<template>', '<textarea>', '<tfoot>', '<th>', '<thead>', '<time>', '<title>', '<tr>', '<track>', '<tt>', '<u>', '<ul>', '<var>', '<video>', '<wbr>', '<xmp>']
 for e in elements:
-    globals()[e[1:-1] + '_'] = partial(tag, e[1:-1])
+    globals()[e[1:-1] + '_'] = functools.partial(tag, e[1:-1])
 
 
 def page(uid, *contents, **kwargs):
@@ -112,6 +111,30 @@ def check_input_(name, text, required=True):
         label_(for_=name)(text),
         input_(type_='checkbox', id_=name, name=name, required=required)
     )
+
+
+class threadsafe_iterable_:
+    def __init__(self, it):
+        self.it = it
+        self.lock = threading.Lock()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        with self.lock:
+            return next(self.it)
+
+def stratify_(*items):
+    items = list(itertools.product(*items))
+    def it():
+        while True:
+            random.shuffle(items)
+            for item in items:
+                yield item
+
+    return threadsafe_iterable_(it())
+
 
 class pair_manager:
     def __init__(self, timeout=60):
