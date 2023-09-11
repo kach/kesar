@@ -1,19 +1,23 @@
 '''
-KESAR: Kartik's Experiment Server for { Accelerating Research
+ /)                 
+(/_   _  _   _   __ 
+/(___(/_/_)_(_(_/ (_
+
+kesar: Kartik's Experiment Server for { Accelerating Research
                                       | Aggregating Responses
                                       | Asking Riddles
                                       | Analyzing Rationality
                                       | Accumulating Reward
                                       | Ascertaining Reality
-                                      | Aiding Researchers
+                                      | Assisting RAs
                                       }
 '''
 
 import os, sys, time, threading
-import http.server, socketserver, uuid
+import http.server, socket, socketserver, uuid
 from urllib.parse import urlparse, parse_qs
 from functools import partial
-import threading
+import json
 
 # https://dohliam.github.io/dropin-minimal-css/
 CSS_FRAMEWORK_HREF = "https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
@@ -50,7 +54,7 @@ def page(uid, *contents, **kwargs):
             meta_(charset="utf-8"),
             meta_(name="viewport", content="width=device-width, initial-scale=1.0"),
             link_(rel='stylesheet', type_='text/css', href=CSS_FRAMEWORK_HREF),
-            form_(action='', method='POST')(
+            form_(action='', method='POST', autocomplete="off")(
                 *contents
             )
         )
@@ -59,7 +63,7 @@ def page(uid, *contents, **kwargs):
         meta_(charset="utf-8"),
         meta_(name="viewport", content="width=device-width, initial-scale=1.0"),
         link_(rel='stylesheet', type_='text/css', href=CSS_FRAMEWORK_HREF),
-        form_(action='', method='POST')(
+        form_(action='', method='POST', autocomplete="off")(
             *contents,
             input_(type_='hidden', name='uid', value=uid),
             p_()(em_()('Note: do not press the "back" button during this study.'))
@@ -163,6 +167,8 @@ def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
     print('   You can learn more about me here: https://github.com/kach/kesar')
     sessions = {}
 
+    logfile_lock = threading.Lock()
+
     class Experiment(http.server.SimpleHTTPRequestHandler):
         def do_GET(self):
             if self.path != '/':
@@ -200,12 +206,10 @@ def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
                 next_form = page(None, bye)
 
                 # Save data, thread-safe
-                import fcntl, json
-                with open(logfile, 'a') as f:
-                    fcntl.flock(f, fcntl.LOCK_EX)
-                    f.write(json.dumps(data) + '\n')
-                    f.flush()
-                    fcntl.flock(f, fcntl.LOCK_UN)
+                with logfile_lock:
+                    with open(logfile, 'a') as f:
+                        f.write(json.dumps(data) + '\n')
+                        f.flush()
             self.wfile.write(next_form.encode('utf-8'))
 
 
@@ -221,12 +225,12 @@ def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
             if current_mtime > init_mtime:
                 print(f'''** I am refreshing the server by running $ python {' '.join(sys.argv)}.''')
                 print()
-                os.execvp('python', ['python'] + sys.argv)
+                with logfile_lock:
+                    os.execvp('python', ['python'] + sys.argv)
 
     if watch:
         threading.Thread(target=refresh_daemon, daemon=True).start()
 
-    import socket
     ip = socket.gethostbyname(socket.gethostname())
     print(f'** I am launching the server at http://{ip}:{port} - press CTRL-C to stop me anytime.')
     print(f'** I am logging responses to file {logfile}')
