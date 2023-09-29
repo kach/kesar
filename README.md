@@ -43,6 +43,7 @@ Of course, this is just a small example. For a real experiment you would include
 Here are some things you don't have to think about with Kesar:
 
 + ~~JavaScript, plugins, templating~~: Kesar lets you design your entire study in Python. The study gets converted into HTML for you. Of course, you can also include external HTML files (e.g. consent screens) and update them live without rebooting the server.
++ ~~Clearing caches, making participants force-refresh, etc.~~: Kesar sends browsers a special instruction not to cache anything so that experiments can be updated instantly without caching issues.
 + ~~CSS and styling~~: Kesar comes with a reasonable built-in theme. Your experiment looks polished, works on both desktop and smartphones, and is accessible by default (including supporting keyboard shortcuts).
 + ~~Asynchronous code, "timelines," "callbacks"~~: In Kesar, you loop over trials with a standard `for` loop in Python, and the loop advances in "real time" as participants advance through the study. `if` and `while` also work as you expect. You don't have to specify a timeline or state machine up-front!
 + ~~Server admin and networking~~: Kesar automatically sets itself up as a web server the way you want it for experiments. The server automatically restarts every time you edit/save your experiment.

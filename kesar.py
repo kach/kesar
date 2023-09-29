@@ -200,6 +200,9 @@ def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
             uid = uuid.uuid4().hex
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
             self.end_headers()
 
             sessions[uid] = script(uid)
@@ -211,12 +214,16 @@ def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
             field_data = self.rfile.read(length)
             fields = parse_qs(urlparse(field_data).path.decode('utf-8'))
             uid = fields['uid'][0]
+            print(fields, self.headers['User-Agent'])
             if uid not in sessions:
                 print(f'-- Rebooting zombie session {uid}')
                 return self.do_GET()
 
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
             self.end_headers()
 
             try:
