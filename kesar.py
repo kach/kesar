@@ -1,6 +1,6 @@
 '''
- /)                 
-(/_   _  _   _   __ 
+ /)
+(/_   _  _   _   __
 /(___(/_/_)_(_(_/ (_
 
 kesar: Kartik's Experiment Server for { Accelerating Research
@@ -15,6 +15,7 @@ kesar: Kartik's Experiment Server for { Accelerating Research
 
 import os, sys, time, threading, random, json
 import http.server, socket, socketserver, uuid
+from http import HTTPStatus
 from urllib.parse import urlparse, parse_qs
 import functools, itertools
 
@@ -52,6 +53,7 @@ def page(uid, *contents, **kwargs):
         return '<!DOCTYPE html>' + html_()(
             meta_(charset="utf-8"),
             meta_(name="viewport", content="width=device-width, initial-scale=1.0"),
+            '<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌺</text></svg>">',
             link_(rel='stylesheet', type_='text/css', href=CSS_FRAMEWORK_HREF),
             form_(action='', method='POST', autocomplete="off")(
                 *contents
@@ -61,6 +63,7 @@ def page(uid, *contents, **kwargs):
     return '<!DOCTYPE html>' + html_()(
         meta_(charset="utf-8"),
         meta_(name="viewport", content="width=device-width, initial-scale=1.0"),
+        '<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌺</text></svg>">',
         link_(rel='stylesheet', type_='text/css', href=CSS_FRAMEWORK_HREF),
         form_(action='', method='POST', autocomplete="off")(
             *contents,
@@ -108,8 +111,8 @@ def text_input_(name='response', text='', required=True):
 
 def check_input_(name, text, required=True):
     return span_()(
-        label_(for_=name)(text),
-        input_(type_='checkbox', id_=name, name=name, required=required)
+        input_(type_='checkbox', id_=name, name=name, required=required),
+        label_(for_=name)(text)
     )
 
 
@@ -195,13 +198,33 @@ def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
     class Experiment(http.server.SimpleHTTPRequestHandler):
         def do_GET(self):
             if self.path != '/':
-                return super().do_GET()
+                # return super().do_GET()
+                path = self.translate_path(self.path)
+                if path.endswith("/"):
+                    self.send_error(HTTPStatus.NOT_FOUND, "File not found")
+                    return
+                try:
+                    f = open(path, 'rb')
+                except OSError:
+                    self.send_error(HTTPStatus.NOT_FOUND, "File not found")
+                    return
+                ctype = self.guess_type(path)
+                fs = os.fstat(f.fileno())
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-type", ctype)
+                self.send_header("Content-Length", str(fs[6]))
+                self.send_header("Cache-Control", "no-cache")
+                self.end_headers()
+                try:
+                    self.copyfile(f, self.wfile)
+                finally:
+                    f.close()
+                return
 
             uid = uuid.uuid4().hex
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
-            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-            self.send_header("Pragma", "no-cache")
+            self.send_header("Cache-Control", "no-cache")
             self.send_header("Expires", "0")
             self.end_headers()
 
@@ -221,8 +244,7 @@ def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
 
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
-            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-            self.send_header("Pragma", "no-cache")
+            self.send_header("Cache-Control", "no-cache")
             self.send_header("Expires", "0")
             self.end_headers()
 
