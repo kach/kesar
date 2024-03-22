@@ -1,8 +1,4 @@
-# Kesar
-
-(See also: [Twitter thread about Kesar's design](https://twitter.com/_k_a_c_h_/status/1754904001362178274).)
-
-If you use Kesar for your research, I would love to hear about it—what works, what doesn't, and how I can improve it! You are also welcome to cite Kesar using this BibTeX entry:
+_Note: If you use Kesar for your research, I would love to hear about it—what works, what doesn't, and how I can improve it! You are also welcome to cite Kesar using this BibTeX entry:_
 ```bibtex
 @misc{chandra2024kesar,
   title={Kesar},
@@ -12,6 +8,10 @@ If you use Kesar for your research, I would love to hear about it—what works, 
   year={2024}
 }
 ```
+
+# Kesar
+
+(See also: [Twitter thread about Kesar's design](https://twitter.com/_k_a_c_h_/status/1754904001362178274).)
 
 Kesar is a Python library for building online human subject experiments (e.g. for Amazon Mechanical Turk or Prolific). Kesar's philosophy is: **You shouldn't have to become a web developer to be a cognitive scientist.** Kesar strives to be extremely friendly to its users at every stage of the study process, from design to deployment.
 
