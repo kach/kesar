@@ -3,7 +3,7 @@ _Note: If you use Kesar for your research, I would love to hear about it—what 
 @misc{chandra2024kesar,
   title={Kesar},
   author={Kartik Chandra},
-  url={http://github.com/kach/kesar},
+  url={https://github.com/kach/kesar},
   doi={10.5281/zenodo.10854388},
   year={2024}
 }
