@@ -2,7 +2,7 @@
 
 (See also: [Twitter thread about Kesar's design](https://twitter.com/_k_a_c_h_/status/1754904001362178274).)
 
-If you are using Kesar, you can cite it using:
+If you use Kesar for your research, I would love to hear about it—what works, what doesn't, and how I can improve it! You are also welcome to cite Kesar using this BibTeX entry:
 ```bibtex
 @misc{chandra2024kesar,
   title={Kesar},
