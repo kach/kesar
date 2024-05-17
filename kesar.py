@@ -115,6 +115,18 @@ def check_input_(name, text, required=True):
         label_(for_=name)(text)
     )
 
+def exit_survey_(*qs):
+    return div_()(
+        h1_()('You are almost done!'),
+        p_()("Answer the following questions and press 'next' to finish the study!"),
+        *[
+            section_()(
+                p_()(q),
+                textarea_(name=f'q{i + 1}', required=True)('')
+            ) for i, q in enumerate(qs)
+        ],
+        submit_()
+    )
 
 class threadsafe_iterable_:
     def __init__(self, it):
@@ -237,6 +249,8 @@ def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
             field_data = self.rfile.read(length)
             fields = parse_qs(urlparse(field_data).path.decode('utf-8'))
             uid = fields['uid'][0]
+            del fields['uid']
+            fields['time_'] = time.time()
             print(fields, self.headers['User-Agent'])
             if uid not in sessions:
                 print(f'-- Rebooting zombie session {uid}')
