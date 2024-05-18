@@ -122,7 +122,7 @@ def exit_survey_(*qs):
         *[
             section_()(
                 p_()(q),
-                textarea_(name=f'q{i + 1}', required=True)('')
+                textarea_(name=f'Q{i + 1}', required=True)('')
             ) for i, q in enumerate(qs)
         ],
         submit_()
@@ -150,6 +150,10 @@ def stratify_(*items):
 
     return threadsafe_iterable_(it())
 
+def shuffled(x):
+    x_ = x[:]
+    random.shuffle(x_)
+    return x_
 
 class pair_manager:
     def __init__(self, timeout=60):
