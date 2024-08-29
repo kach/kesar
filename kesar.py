@@ -115,6 +115,12 @@ def check_input_(name, text, required=True):
         label_(for_=name)(text)
     )
 
+def select_input_(name, options_dict, prompt="-- select one --", **kwargs):
+    return select_(name=name, **kwargs)(
+        option_(value="")(prompt),
+        *[option_(value=k)(v) for k, v in options_dict.items()]
+    )
+
 def exit_survey_(*qs):
     return div_()(
         h1_()('You are almost done!'),
@@ -151,7 +157,7 @@ def stratify_(*items):
     return threadsafe_iterable_(it())
 
 def shuffled(x):
-    x_ = x[:]
+    x_ = list(x)[:]
     random.shuffle(x_)
     return x_
 
