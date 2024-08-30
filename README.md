@@ -60,9 +60,10 @@ Here are some things you don't have to think about with Kesar:
 + ~~CSS and styling~~: Kesar comes with a reasonable built-in theme. Your experiment looks polished, works on both desktop and smartphones, and is accessible by default (including supporting keyboard shortcuts).
 + ~~Asynchronous code, "timelines," "callbacks"~~: In Kesar, you loop over trials with a standard `for` loop in Python, and the loop advances in "real time" as participants advance through the study. `if` and `while` also work as you expect. You don't have to specify a timeline or state machine up-front!
 + ~~Server admin and networking~~: Kesar automatically sets itself up as a web server the way you want it for experiments. The server automatically restarts every time you edit/save your experiment.
++ ~~Syncing files among servers~~: Kesar lets you "publish" a server running on your local machine via SSH tunneling.
 + ~~Logging, databases, SQL, XMLHttpRequests~~: Kesar has built-in facility to log responses to a file in JSON format. Logging is thread-safe by default so you never have data corruption issues.
 + ~~WebSockets for "multiplayer" experiments~~: Kesar lets you pair up participants (e.g. for a communication game) with just two lines of code. You can tunnel information between participants, and even detect when a participant's partner disconnects.
-+ ~~Randomizing stimuli~~: Kesar lets you stratify stimuli across participants so that you can run factorial designs that get the same number of participants for each condition.
++ ~~Randomizing stimuli~~: Kesar lets you stratify stimuli across participants so that you can run factorial designs that get the same number of participants for each condition, in a thread-safe manner.
 
 The entire library is a single dependency-free Python file that builds on standard, simple, lasting technologies. If it comes to it, you should easily be able to edit Kesar itself to do what you want.
 
