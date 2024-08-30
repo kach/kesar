@@ -210,7 +210,7 @@ def pause_(t=10):
         }}, {t * 1000});
     ''')
 
-def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
+def kesar(script, port=8080, watch=True, logfile='log.jsonl', remote_host=None, remote_port=None):
     print(f'** Hello! I am Kesar and the time is {time.ctime()}.')
     print('   You can learn more about me here: https://github.com/kach/kesar')
     sessions = {}
@@ -236,6 +236,7 @@ def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
                 self.send_header("Content-type", ctype)
                 self.send_header("Content-Length", str(fs[6]))
                 self.send_header("Cache-Control", "no-cache")
+                self.send_header("X-ngrok-skip-browser-warning", "kesar")
                 self.end_headers()
                 try:
                     self.copyfile(f, self.wfile)
@@ -310,6 +311,16 @@ def kesar(script, port=8080, watch=True, logfile='log.jsonl'):
     ip = socket.gethostbyname(socket.gethostname())
     print(f'** I am launching the server at http://{ip}:{port} - press CTRL-C to stop me anytime.')
     print(f'** I am logging responses to file {logfile}')
+
+    if remote_host is not None and remote_port is not None:
+        import subprocess, shlex
+        # https://superuser.com/a/1107557
+        ssh_cmd = f"""ssh -R 0.0.0.0:{port}:localhost:{port} {remote_host} "ssh -g -L {remote_port}:localhost:{port} localhost" """
+        ssh_args = shlex.split(ssh_cmd)
+        print(f"** I am launching the remote server at http://{remote_host}:{remote_port}.")
+        print(f"   $ {ssh_cmd}")
+        sshd = subprocess.Popen(ssh_args, stdout=sys.stdout, stderr=sys.stderr)
+
     with http.server.ThreadingHTTPServer(("", port), Experiment) as httpd:
         try:
             httpd.serve_forever()
