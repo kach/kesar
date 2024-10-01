@@ -143,3 +143,8 @@ To run the server, simply run `python3 my_experiment.py` in the terminal. Kesar 
 The server will automatically restart if you edit `my_experiment.py`.
 
 You should run the server inside a `tmux` or `screen` session so that it persists if you log off from your machine.
+
+
+# Some published papers based on Kesar
+- Caren, Matthew, et al. "Sketching With Your Voice: "Non-Phonorealistic" Rendering of Sounds via Vocal Imitation." arXiv preprint arXiv:2409.13507 (2024).
+- Chandra, Kartik, et al. "Cooperative Explanation as Rational Communication." Proceedings of the Annual Meeting of the Cognitive Science Society. Vol. 46. 2024.
