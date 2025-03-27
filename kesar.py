@@ -210,6 +210,22 @@ def pause_(t=10):
         }}, {t * 1000});
     ''')
 
+def get_ip():
+    try:
+        return socket.gethostbyname(socket.gethostname())
+    except socket.gaierror:
+        print('[!] failed to get IP via gethostbyname')
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0]
+    except OSError:
+        print('[!] failed to get IP via 8.8.8.8')
+
+    print('[!] giving up and using 0.0.0.0')
+    return '0.0.0.0'
+
 def kesar(script, port=8080, watch=True, logfile='log.jsonl', remote_host=None, remote_port=None):
     print(f'** Hello! I am Kesar and the time is {time.ctime()}.')
     print('   You can learn more about me here: https://github.com/kach/kesar')
@@ -300,15 +316,16 @@ def kesar(script, port=8080, watch=True, logfile='log.jsonl', remote_host=None, 
             time.sleep(1)
             current_mtime = os.path.getmtime(init_file)
             if current_mtime > init_mtime:
-                print(f'''** I am refreshing the server by running $ python {' '.join(sys.argv)}.''')
+                python3 = sys.executable
+                print(f'''** I am refreshing the server by running $ python3 {' '.join(sys.argv)}.''')
                 print()
                 with logfile_lock:
-                    os.execvp('python', ['python'] + sys.argv)
+                    os.execvp(python3, ['python3'] + sys.argv)
 
     if watch:
         threading.Thread(target=refresh_daemon, daemon=True).start()
 
-    ip = socket.gethostbyname(socket.gethostname())
+    ip = get_ip()
     print(f'** I am launching the server at http://{ip}:{port} - press CTRL-C to stop me anytime.')
     print(f'** I am logging responses to file {logfile}')
 
