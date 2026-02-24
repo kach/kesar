@@ -121,6 +121,15 @@ def select_input_(name, options_dict, prompt="-- select one --", **kwargs):
         *[option_(value=k)(v) for k, v in options_dict.items()]
     )
 
+def radio_input_(name, options_dict, **kwargs):
+    return ul_()(*[
+        li_()(
+            input_(type_='radio', id_=f'{name}_{k}', name=name, value=k)(),
+            label_(for_=f'{name}_{k}')(v)
+        )
+        for k, v in options_dict.items()
+    ])
+
 def exit_survey_(*qs):
     return div_()(
         h1_()('You are almost done!'),
